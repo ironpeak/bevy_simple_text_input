@@ -375,6 +375,9 @@ fn keyboard(
             if !input.state.is_pressed() {
                 continue;
             };
+            if !key_input.just_pressed(input.key_code) {
+                continue;
+            }
 
             let pos = cursor_pos.bypass_change_detection().0;
 

@@ -158,6 +158,8 @@ pub struct TextInputSettings {
 /// Text navigation actions that can be bound via `TextInputNavigationBindings`.
 #[derive(Debug)]
 pub enum TextInputAction {
+    /// Paste from clipboard.
+    Paste,
     /// Moves the cursor one char to the left.
     CharLeft,
     /// Moves the cursor one char to the right.
@@ -209,6 +211,14 @@ impl Default for TextInputNavigationBindings {
         use KeyCode::*;
         use TextInputAction::*;
         Self(vec![
+            (
+                TextInputAction::Paste,
+                TextInputBinding::new(KeyV, [ControlLeft]),
+            ),
+            (
+                TextInputAction::Paste,
+                TextInputBinding::new(KeyV, [ControlRight]),
+            ),
             (LineStart, TextInputBinding::new(Home, [])),
             (LineEnd, TextInputBinding::new(End, [])),
             (WordLeft, TextInputBinding::new(ArrowLeft, [ControlLeft])),
@@ -232,6 +242,14 @@ impl Default for TextInputNavigationBindings {
         use KeyCode::*;
         use TextInputAction::*;
         Self(vec![
+            (
+                TextInputAction::Paste,
+                TextInputBinding::new(KeyV, [SuperLeft]),
+            ),
+            (
+                TextInputAction::Paste,
+                TextInputBinding::new(KeyV, [SuperRight]),
+            ),
             (LineStart, TextInputBinding::new(ArrowLeft, [SuperLeft])),
             (LineStart, TextInputBinding::new(ArrowLeft, [SuperRight])),
             (LineEnd, TextInputBinding::new(ArrowRight, [SuperLeft])),
@@ -354,6 +372,16 @@ fn keyboard(
                 use TextInputAction::*;
                 let mut timer_should_reset = true;
                 match action {
+                    Paste => {
+                        use arboard::Clipboard;
+                        if let Ok(mut clipboard) = Clipboard::new() {
+                            let paste_value = clipboard.get_text().unwrap_or_default();
+                            let (before, after) = text_input.0.split_at(cursor_pos.0);
+                            text_input.0 = format!("{}{}{}", before, paste_value, after);
+                            cursor_pos.0 += paste_value.chars().count();
+                            cursor_pos.set_changed();
+                        }
+                    }
                     CharLeft => cursor_pos.0 = cursor_pos.0.saturating_sub(1),
                     CharRight => cursor_pos.0 = (cursor_pos.0 + 1).min(text_input.0.len()),
                     LineStart => cursor_pos.0 = 0,

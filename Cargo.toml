@@ -17,6 +17,9 @@ default = ["std"]
 std = ["bevy/std"]
 libm = ["bevy/libm"]
 
+[dependencies]
+arboard = "3"
+
 [dependencies.bevy]
 version = "0.16.0"
 default-features = false
